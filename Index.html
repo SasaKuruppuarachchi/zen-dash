@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zen Focus</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+
+        :root {
+            --glass-bg: rgba(0, 0, 0, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.15);
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+            color: white;
+            overflow: hidden;
+            background-color: #050505;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 1.5s ease-in-out;
+            /* Smooth transition when changing themes manually */
+        }
+
+        /* Main Center Area */
+        #center-wrapper {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            z-index: 10;
+            position: relative;
+            padding: 0 20px;
+        }
+
+        /* Unified Info Bar (Event + Task) */
+        #unified-info-bar {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 40px;
+            padding: 5px 15px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            transition: transform 0.2s;
+        }
+
+        #unified-info-bar:hover {
+            transform: scale(1.02);
+        }
+
+        .info-segment {
+            padding: 8px 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 300px;
+            text-decoration: none;
+            transition: opacity 0.2s;
+            letter-spacing: 0.5px;
+        }
+
+        .info-segment:hover {
+            opacity: 0.8;
+        }
+
+        .event-part {
+            color: #a5b4fc;
+        }
+
+        .task-part {
+            color: white;
+        }
+
+        .info-divider {
+            width: 1px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 0 5px;
+        }
+
+        /* Timer Mode Selectors */
+        .pill-nav {
+            display: flex;
+            gap: 10px;
+            background: var(--glass-bg);
+            padding: 5px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .pill-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .pill-btn.active {
+            background: white;
+            color: black;
+        }
+
+        /* Anti-Jump Clock Wrapper */
+        #clock-wrapper {
+            position: relative;
+            margin-bottom: 70px;
+            /* Permanently reserves space for the buttons so the clock NEVER moves */
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        /* Massive Clock / Timer */
+        #main-display {
+            font-size: 10rem;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -3px;
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            margin: 0;
+        }
+
+        /* Fluid Timer Actions */
+        #timer-actions {
+            position: absolute;
+            bottom: -65px;
+            /* Sits right beneath the clock */
+            display: flex;
+            gap: 15px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-15px);
+            transition: opacity 0.4s ease, transform 0.4s ease, visibility 0.4s;
+        }
+
+        #timer-actions.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .action-btn {
+            background: white;
+            border: none;
+            color: black;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Prominent Buddha Quote */
+        #quote-container {
+            max-width: 600px;
+            margin: 10px auto 20px auto;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+
+        #quote {
+            font-size: 1.4rem;
+            font-style: italic;
+            font-weight: 300;
+            line-height: 1.4;
+        }
+
+        /* Bottom Floating Menus */
+        .bottom-bar {
+            position: absolute;
+            bottom: 30px;
+            left: 40px;
+            right: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            z-index: 100;
+        }
+
+        .icon-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.4rem;
+            backdrop-filter: blur(10px);
+            transition: 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        /* Floating Panels */
+        .panel {
+            position: absolute;
+            bottom: 90px;
+            left: 40px;
+            background: rgba(10, 10, 15, 0.9);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            width: 320px;
+            backdrop-filter: blur(20px);
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+        }
+
+        .panel.active {
+            display: flex;
+        }
+
+        .panel h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .sound-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .sound-item label {
+            flex-grow: 1;
+            font-size: 0.9rem;
+        }
+
+        input[type=range] {
+            width: 100px;
+            accent-color: white;
+        }
+
+        /* Stats Panel */
+        #stats-panel {
+            left: auto;
+            right: 40px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-box span {
+            display: block;
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            #main-display {
+                font-size: 5.5rem;
+            }
+
+            #quote {
+                font-size: 1.1rem;
+            }
+
+            /* Stack the unified bar nicely on mobile */
+            #unified-info-bar {
+                flex-direction: column;
+                border-radius: 20px;
+                padding: 10px;
+            }
+
+            .info-divider {
+                width: 80%;
+                height: 1px;
+                margin: 5px 0;
+            }
+
+            .info-segment {
+                white-space: normal;
+                text-align: center;
+            }
+
+            .bottom-bar {
+                left: 20px;
+                right: 20px;
+                bottom: 20px;
+            }
+
+            .panel {
+                left: 20px;
+                right: 20px;
+                width: auto;
+                bottom: 80px;
+            }
+
+            #stats-panel {
+                right: 20px;
+            }
+
+            .btn-group {
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Main Center Area -->
+    <div id="center-wrapper">
+
+        <!-- Unified Info Bar -->
+        <div id="unified-info-bar">
+            <div class="info-segment event-part">🗓️ <span id="event-text">Syncing Calendar...</span></div>
+            <div class="info-divider"></div>
+            <a class="info-segment task-part" href="https://calendar.google.com/calendar/" target="_blank">
+                ☕ <span id="priority-text">Syncing tasks...</span> ↗
+            </a>
+        </div>
+
+        <!-- Timer Mode Selectors -->
+        <div class="pill-nav" id="mode-selector">
+            <button class="pill-btn active" onclick="setMode('clock', this)">Clock</button>
+            <button class="pill-btn" onclick="setMode('focus', this)">Focus</button>
+            <button class="pill-btn" onclick="setMode('shortBreak', this)">Short Break</button>
+        </div>
+
+        <!-- Anti-Jump Clock Wrapper -->
+        <div id="clock-wrapper">
+            <div id="main-display" onclick="toggleTimer()">00:00</div>
+
+            <!-- Fluid Timer Actions (Positioned Absolute inside Wrapper) -->
+            <div id="timer-actions">
+                <button class="action-btn" id="start-btn" onclick="toggleTimer()">Start Focus</button>
+                <button class="icon-btn" style="width: 48px; height: 48px;" onclick="resetTimer()">↻</button>
+            </div>
+        </div>
+
+        <!-- Prominent Buddha Quote -->
+        <div id="quote-container">
+            <div id="quote">"Peace comes from within. Do not seek it without."</div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Floating Menus -->
+    <div class="bottom-bar">
+        <div class="btn-group">
+            <button class="icon-btn" onclick="togglePanel('sounds-panel')" title="Music & Sounds">🎵</button>
+            <button class="icon-btn" onclick="changeTheme()" title="Change Background">🎨</button>
+        </div>
+        <div class="btn-group">
+            <button class="icon-btn" onclick="togglePanel('stats-panel')" title="Statistics">📊</button>
+            <button class="icon-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+        </div>
+    </div>
+
+    <!-- Ambient Sounds Panel -->
+    <div id="sounds-panel" class="panel">
+        <h3>Ambient Focus</h3>
+        <div class="sound-item">
+            <span>🌧️</span> <label>Light Rain</label>
+            <input type="range" id="vol-rain" min="0" max="1" step="0.1" value="0"
+                onchange="adjustVolume('rain', this.value)">
+        </div>
+        <div class="sound-item">
+            <span>☕</span> <label>Street Café</label>
+            <input type="range" id="vol-cafe" min="0" max="1" step="0.1" value="0"
+                onchange="adjustVolume('cafe', this.value)">
+        </div>
+
+        <h3 style="margin-top: 10px;">Lofi Music</h3>
+        <iframe style="border-radius:12px"
+            src="https://open.spotify.com/embed/playlist/0vvXsWCC9xrXsKd4FyS8kM?utm_source=generator&theme=0"
+            width="100%" height="80" frameBorder="0" allowfullscreen=""
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+    </div>
+
+    <!-- Stats Panel -->
+    <div id="stats-panel" class="panel">
+        <h3>Session Stats</h3>
+        <div class="stat-box">
+            <span id="stat-minutes">0</span>
+            Focus Minutes Today
+        </div>
+        <div class="stat-box">
+            <span id="stat-sessions">0</span>
+            Sessions Completed
+        </div>
+    </div>
+
+    <!-- Hidden Audio Tags -->
+    <audio id="audio-rain" loop src="https://assets.mixkit.co/active_storage/sfx/2391/2391-preview.mp3"></audio>
+    <audio id="audio-cafe" loop src="https://assets.mixkit.co/active_storage/sfx/131/131-preview.mp3"></audio>
+
+    <script>
+        // --- 1. Calming Backgrounds & Random Initialization ---
+        const themes = [
+            'url("https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1920&q=80")', // Starry Sky
+            'url("https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1920&q=80")', // Moody Mountains
+            'url("https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?auto=format&fit=crop&w=1920&q=80")', // Dark Textures
+            'url("https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?auto=format&fit=crop&w=1920&q=80")', // B&W Sketch / Abstract
+            'url("https://images.unsplash.com/photo-1436891620584-47fd0e565afb?auto=format&fit=crop&w=1920&q=80")', // Foggy Forest
+            'url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80")', // Dark Ocean Waves
+            'url("https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=1920&q=80")', // Northern Lights
+            'url("https://images.unsplash.com/photo-1483728642387-6c3bf6c11202?auto=format&fit=crop&w=1920&q=80")', // Minimalist Geometry
+            'url("https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=1920&q=80")'  // High Altitude Mountains
+        ];
+
+        // Pick a random background immediately on load
+        let themeIndex = Math.floor(Math.random() * themes.length);
+        document.body.style.backgroundImage = themes[themeIndex];
+
+        function changeTheme() {
+            themeIndex = (themeIndex + 1) % themes.length;
+            document.body.style.backgroundImage = themes[themeIndex];
+        }
+
+        // --- 2. Core State ---
+        let currentMode = 'clock';
+        let timerInterval;
+        let timeLeft = 25 * 60;
+        let isRunning = false;
+        let focusMinutesTotal = parseInt(localStorage.getItem('focusMinutes')) || 0;
+        let sessionsTotal = parseInt(localStorage.getItem('focusSessions')) || 0;
+
+        // --- 3. Clock ---
+        function updateClock() {
+            if (currentMode !== 'clock') return;
+            const now = new Date();
+            document.getElementById('main-display').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+        updateStatsDisplay();
+
+        // --- 4. Quotes (Main Focus) ---
+        const quotes = [
+            // Buddha Quotes
+            `"Peace comes from within. Do not seek it without." - Gautama Buddha`,
+            `"You cannot travel the path until you have become the path itself." - Gautama Buddha`,
+            `"What you think, you become. What you feel, you attract. What you imagine, you create." - Gautama Buddha`,
+            `"Three things cannot be long hidden: the sun, the moon, and the truth." - Gautama Buddha`,
+            `"You only lose what you cling to." - Gautama Buddha`,
+            `"Drop by drop is the water pot filled. Likewise, the wise man, gathering it little by little, fills himself with good." - Gautama Buddha`,
+            `"Radiate boundless love towards the entire world." - Gautama Buddha`,
+            `"To keep the body in good health is a duty... otherwise we shall not be able to keep our mind strong and clear." - Gautama Buddha`,
+            `"Let the past make you better, not bitter." - Gautama Buddha`,
+            `"There is no path to happiness: happiness is the path." - Gautama Buddha`,
+
+            // Joseph Goldstein Quotes
+            `"Mindfulness isn't difficult, we just need to remember to do it." - Joseph Goldstein`,
+            `"The mind is like a clear sky, and thoughts and emotions are like clouds." - Joseph Goldstein`,
+            `"Notice the tendency of the mind to constantly project into the future." - Joseph Goldstein`,
+            `"Anything can happen at any time. This is not meant to frighten us, but to liberate us." - Joseph Goldstein`,
+            `"You can't stop the waves, but you can learn to surf." - Joseph Goldstein`,
+            `"Every time we become aware of a thought, as opposed to being lost in a thought, we experience that opening of the mind." - Joseph Goldstein`,
+            `"We are what we think. All that we are arises with our thoughts. With our thoughts we make the world." - Joseph Goldstein`,
+            `"The root of suffering is attachment." - Joseph Goldstein`,
+            `"Forgiveness is not a single act, but a continuous process." - Joseph Goldstein`,
+            `"Meditation is not a way of making your mind quiet. It is a way of entering into the quiet that is already there." - Joseph Goldstein`
+        ];
+        document.getElementById('quote').innerText = quotes[Math.floor(Math.random() * quotes.length)];
+
+        // --- 5. Google Data Fetch ---
+        google.script.run.withSuccessHandler(function (data) {
+            document.getElementById('priority-text').innerText = data.topTask;
+            document.getElementById('event-text').innerText = data.nextEvent;
+        }).getUserData();
+
+        // --- 6. Timer Logic with Fluid Transitions ---
+        const durations = { focus: 25 * 60, shortBreak: 5 * 60 };
+
+        function setMode(mode, btnElement) {
+            currentMode = mode;
+            document.querySelectorAll('.pill-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            clearInterval(timerInterval);
+            isRunning = false;
+
+            const timerActions = document.getElementById('timer-actions');
+
+            if (mode === 'clock') {
+                timerActions.classList.remove('show'); // Fluid fade out
+                updateClock();
+            } else {
+                timerActions.classList.add('show'); // Fluid fade in
+                timeLeft = durations[mode];
+                renderTimer();
+                document.getElementById('start-btn').innerText = "Start Focus";
+            }
+        }
+
+        function renderTimer() {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('main-display').innerText = `${m}:${s}`;
+        }
+
+        function toggleTimer() {
+            if (currentMode === 'clock') return;
+            const startBtn = document.getElementById('start-btn');
+
+            if (isRunning) {
+                clearInterval(timerInterval);
+                startBtn.innerText = "Resume";
+            } else {
+                startBtn.innerText = "Pause";
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        renderTimer();
+                    } else {
+                        clearInterval(timerInterval);
+                        handleSessionComplete();
+                    }
+                }, 1000);
+            }
+            isRunning = !isRunning;
+        }
+
+        function resetTimer() {
+            if (currentMode === 'clock') return;
+            clearInterval(timerInterval);
+            isRunning = false;
+            timeLeft = durations[currentMode];
+            renderTimer();
+            document.getElementById('start-btn').innerText = "Start Focus";
+        }
+
+        function handleSessionComplete() {
+            isRunning = false;
+            document.getElementById('start-btn').innerText = "Done";
+            if (currentMode === 'focus') {
+                focusMinutesTotal += 25;
+                sessionsTotal += 1;
+                localStorage.setItem('focusMinutes', focusMinutesTotal);
+                localStorage.setItem('focusSessions', sessionsTotal);
+                updateStatsDisplay();
+            }
+            alert(`Session complete! Take a breath.`);
+        }
+
+        // --- 7. Features (Sounds, Fullscreen) ---
+        function adjustVolume(sound, vol) {
+            const audio = document.getElementById(`audio-${sound}`);
+            audio.volume = vol;
+            if (vol > 0 && audio.paused) audio.play();
+            else if (vol == 0) audio.pause();
+        }
+
+        function togglePanel(id) {
+            document.querySelectorAll('.panel').forEach(p => {
+                if (p.id !== id) p.classList.remove('active');
+            });
+            const panel = document.getElementById(id);
+            panel.classList.toggle('active');
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('stat-minutes').innerText = focusMinutesTotal;
+            document.getElementById('stat-sessions').innerText = sessionsTotal;
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    alert(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
