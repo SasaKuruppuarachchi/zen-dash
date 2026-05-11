@@ -39,3 +39,20 @@ function getUserData() {
 
   return { topTask: topTask, nextEvent: nextEvent };
 }
+
+function getUserStats() {
+  const props = PropertiesService.getUserProperties();
+  return {
+    focusMinutesTotal: parseInt(props.getProperty('focusMinutesTotal')) || 0,
+    sessionsTotal: parseInt(props.getProperty('sessionsTotal')) || 0,
+    lastRelapseDate: props.getProperty('lastRelapseDate') || new Date('2026-05-09T00:00:00Z').toISOString()
+  };
+}
+
+function saveUserStats(stats) {
+  const props = PropertiesService.getUserProperties();
+  if (stats.focusMinutesTotal !== undefined) props.setProperty('focusMinutesTotal', stats.focusMinutesTotal.toString());
+  if (stats.sessionsTotal !== undefined) props.setProperty('sessionsTotal', stats.sessionsTotal.toString());
+  if (stats.lastRelapseDate !== undefined) props.setProperty('lastRelapseDate', stats.lastRelapseDate);
+  return true;
+}
